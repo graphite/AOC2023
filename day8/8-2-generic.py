@@ -23,13 +23,13 @@ for n in nodes:
     pos = n
     i = 0
     while True:
-        step = steps[i % len(steps)]
-        i += 1
-        pos = nodes[pos][0 if step == 'L' else 1]
         if pos[-1] == 'Z':
             next_exits[n] = i
             shifts_set.add(i - i % len(steps))
             break
+        step = steps[i % len(steps)]
+        pos = nodes[pos][0 if step == 'L' else 1]
+        i += 1
 
 print('Calculating transitions table...')
 transitions = {}
@@ -55,10 +55,6 @@ while len(exits) != 1:
     i += shift
     positions = [transitions[x][shift] for x in positions]
     exits = set(next_exits[x] for x in positions)
-    if i == 13289612809129:
-        print(positions)
-        print(exits)
-        exit()
     new_t = datetime.datetime.now()
     if (new_t - t).seconds >= 10:
         t = new_t
@@ -68,4 +64,4 @@ for x in exits:
     i += x
     break
 
-print(i)
+print('Result:', i)
