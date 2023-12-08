@@ -18,18 +18,26 @@ for l in f:
 
 print('Calculating closest exits...')
 next_exits = {}
+block_exits = {}
 shifts_set = set()
 for n in nodes:
     pos = n
     i = 0
-    while True:
+    block_exits[n] = set()
+    while i < len(steps) or n not in next_exits:
         if pos[-1] == 'Z':
-            next_exits[n] = i
-            shifts_set.add(i - i % len(steps))
-            break
+            if n not in next_exits:
+                next_exits[n] = i
+                shifts_set.add(i - i % len(steps))
+            if i < len(steps):
+                block_exits[n].add(i)
         step = steps[i % len(steps)]
         pos = nodes[pos][0 if step == 'L' else 1]
         i += 1
+        if i > len(steps) * len(nodes):
+            # This node is a dead end, if we reach it the program will fail
+            # as there is no solution.
+            break
 
 print('Calculating transitions table...')
 transitions = {}
@@ -49,9 +57,15 @@ positions = starts
 start_t = t = datetime.datetime.now()
 i = 0
 while len(exits) != 1:
-    # There is a corner case of shift == 0 here, i.e. all nodes have exits within next block,
-    # but the closest differs. A bitmask of exits for the next block for each node can solve this.
     shift = max(exits) - max(exits) % len(steps)
+    if shift == 0:
+        current_block_exits = block_exits[positions[0]]
+        for pos in positions[1:]:
+            current_block_exits = current_block_exits.intersection(block_exits[pos])
+        if current_block_exits:
+            exits = set(min(current_block_exits))
+            break
+        shift = len(steps)
     i += shift
     positions = [transitions[x][shift] for x in positions]
     exits = set(next_exits[x] for x in positions)
