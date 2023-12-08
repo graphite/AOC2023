@@ -25,15 +25,15 @@ for n in nodes:
     i = 0
     block_exits[n] = set()
     while i < len(steps) or n not in next_exits:
+        step = steps[i % len(steps)]
+        pos = nodes[pos][0 if step == 'L' else 1]
+        i += 1
         if pos[-1] == 'Z':
             if n not in next_exits:
                 next_exits[n] = i
                 shifts_set.add(i - i % len(steps))
             if i < len(steps):
                 block_exits[n].add(i)
-        step = steps[i % len(steps)]
-        pos = nodes[pos][0 if step == 'L' else 1]
-        i += 1
         if i > len(steps) * len(nodes):
             # This node is a dead end, if we reach it the program will fail
             # as there is no solution.
@@ -68,6 +68,13 @@ while len(exits) != 1:
         shift = len(steps)
     i += shift
     positions = [transitions[x][shift] for x in positions]
+    # Special case of hitting the exits right at the edge of the block
+    for p in positions:
+        if p[-1] != 'Z':
+            break
+    else:
+        exits = set(0)
+        break
     exits = set(next_exits[x] for x in positions)
     new_t = datetime.datetime.now()
     if (new_t - t).seconds >= 10:
